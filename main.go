@@ -4,9 +4,12 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Server implementation
@@ -32,19 +35,48 @@ func (s *server) ListUsers(req *ListUsersRequest, stream UserService_ListUsersSe
 	
 	for _, user := range users {
 		log.Printf("Sending: %s", user.Name)
-		stream.Send(user)
-		time.Sleep(1 * time.Second) // Simulate delay
+		if err := stream.Send(user); err != nil {
+			return err
+		}
+		time.Sleep(1 * time.Second)
 	}
 	
 	return nil
 }
 
 func main() {
-	lis, _ := net.Listen("tcp", ":50051")
+	// Start gRPC server in a goroutine
+	go func() {
+		lis, err := net.Listen("tcp", ":50051")
+		if err != nil {
+			log.Fatalf("Failed to listen: %v", err)
+		}
+
+		grpcServer := grpc.NewServer()
+		RegisterUserServiceServer(grpcServer, &server{})
+		
+		log.Println("gRPC Server running on :50051")
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve gRPC: %v", err)
+		}
+	}()
+
+	// Give gRPC server time to start
+	time.Sleep(100 * time.Millisecond)
+
+	// Start HTTP server with gRPC Gateway
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	
-	grpcServer := grpc.NewServer()
-	RegisterUserServiceServer(grpcServer, &server{})
-	
-	log.Println("Server running on :50051")
-	grpcServer.Serve(lis)
+	err := RegisterUserServiceHandlerFromEndpoint(ctx, mux, "localhost:50051", opts)
+	if err != nil {
+		log.Fatalf("Failed to register gateway: %v", err)
+	}
+
+	log.Println("HTTP Gateway running on :8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

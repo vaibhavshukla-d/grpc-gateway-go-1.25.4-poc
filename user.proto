@@ -1,13 +1,24 @@
 syntax = "proto3";
 package demo;
+
 option go_package = "./;main";
+
+import "google/api/annotations.proto";
 
 service UserService {
   // Normal call
-  rpc GetUser(GetUserRequest) returns (User);
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/v1/users/{id}"
+    };
+  }
   
   // Streaming call
-  rpc ListUsers(ListUsersRequest) returns (stream User);
+  rpc ListUsers(ListUsersRequest) returns (stream User) {
+    option (google.api.http) = {
+      get: "/v1/users"
+    };
+  }
 }
 
 message User {

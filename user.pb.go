@@ -7,6 +7,7 @@
 package main
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -158,18 +159,18 @@ var File_user_proto protoreflect.FileDescriptor
 const file_user_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"user.proto\x12\x04demo\"*\n" +
+	"user.proto\x12\x04demo\x1a\x1cgoogle/api/annotations.proto\"*\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\" \n" +
 	"\x0eGetUserRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\"\x12\n" +
-	"\x10ListUsersRequest2m\n" +
-	"\vUserService\x12+\n" +
+	"\x10ListUsersRequest2\x98\x01\n" +
+	"\vUserService\x12C\n" +
 	"\aGetUser\x12\x14.demo.GetUserRequest\x1a\n" +
-	".demo.User\x121\n" +
+	".demo.User\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/users/{id}\x12D\n" +
 	"\tListUsers\x12\x16.demo.ListUsersRequest\x1a\n" +
-	".demo.User0\x01B\tZ\a./;mainb\x06proto3"
+	".demo.User\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/users0\x01B\tZ\a./;mainb\x06proto3"
 
 var (
 	file_user_proto_rawDescOnce sync.Once
