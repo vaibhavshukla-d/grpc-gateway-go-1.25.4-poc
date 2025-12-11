@@ -44,6 +44,26 @@ func (s *server) ListUsers(req *ListUsersRequest, stream UserService_ListUsersSe
 	return nil
 }
 
+// CORS middleware
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+		
+		// Handle preflight OPTIONS request
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	// Start gRPC server in a goroutine
 	go func() {
@@ -77,6 +97,9 @@ func main() {
 		log.Fatalf("Failed to register gateway: %v", err)
 	}
 
-	log.Println("HTTP Gateway running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	// Wrap mux with CORS middleware
+	handler := corsMiddleware(mux)
+
+	log.Println("HTTP Gateway running on :8080 with CORS enabled")
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
