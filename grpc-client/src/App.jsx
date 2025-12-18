@@ -1,5 +1,6 @@
 import UserPage from "./pages/UserPage";
 import UserListPage from "./pages/UserListPage";
+import WebSocketStreamingComponent from "./components/WebSocketStreamingComponent";
 
 function App() {
 	return (
@@ -11,6 +12,9 @@ function App() {
 
 			<h2>Streaming Users</h2>
 			<UserListPage />
+
+			<h2>WebSocket Streaming Console</h2>
+			<WebSocketStreamingComponent />
 		</div>
 	);
 }

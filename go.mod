@@ -10,6 +10,9 @@ require (
 )
 
 require (
+	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75 // indirect
 	golang.org/x/net v0.46.1-0.20251013234738-63d1a5100f82 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.30.0 // indirect

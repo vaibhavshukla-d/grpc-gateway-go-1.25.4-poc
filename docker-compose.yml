@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "8080:8080" # Gateway
+      - "50051:50051" # gRPC
+    networks:
+      - app-network
+ 
+  frontend:
+    build: ./grpc-client
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+ 
+networks:
+  app-network:
+    driver: bridge
