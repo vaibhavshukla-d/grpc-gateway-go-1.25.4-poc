@@ -23,27 +23,51 @@ export default function WebSocketStreamingComponent() {
     addLog('Connecting to WebSocket...', 'info');
     setUsers([]);
 
-    const ws = new WebSocket('ws://localhost:8080/v1/users/list');
+    // Use proper WebSocket URL with query parameters if needed
+    const ws = new WebSocket('ws://localhost:8080/v1/users');
     wsRef.current = ws;
 
     ws.onopen = () => {
       addLog('✓ WebSocket connection established', 'success');
       setStatus('connected');
       addLog('Listening for streaming data...', 'info');
+      
+      // Send initial request to start streaming
+      // For grpc-websocket-proxy, we may need to send an empty JSON object
+      try {
+        ws.send(JSON.stringify({}));
+        addLog('📤 Sent initial request to start stream', 'info');
+      } catch (e) {
+        addLog('⚠️ Error sending initial request: ' + e.message, 'error');
+      }
     };
 
     ws.onmessage = (event) => {
       try {
         addLog('📦 Raw message: ' + event.data, 'data');
-        const data = JSON.parse(event.data);
-        addLog(`📨 Parsed: ${JSON.stringify(data)}`, 'success');
         
-        if (data.id && data.name) {
-          setUsers(prev => [...prev, data]);
-          addLog(`👤 User #${data.id}: ${data.name}`, 'success');
-        }
+        // grpc-websocket-proxy sends newline-delimited JSON
+        // Split by newline in case multiple messages come at once
+        const messages = event.data.trim().split('\n').filter(msg => msg.length > 0);
+        
+        messages.forEach(msg => {
+          try {
+            const data = JSON.parse(msg);
+            addLog(`📨 Parsed: ${JSON.stringify(data)}`, 'success');
+            
+            // Check for result field (grpc-websocket-proxy format)
+            const user = data.result || data;
+            
+            if (user.id && user.name) {
+              setUsers(prev => [...prev, user]);
+              addLog(`👤 User #${user.id}: ${user.name}`, 'success');
+            }
+          } catch (parseErr) {
+            addLog('⚠️ Parse error for message: ' + parseErr.message, 'error');
+          }
+        });
       } catch (e) {
-        addLog('⚠️ Parse error: ' + e.message, 'error');
+        addLog('⚠️ Message processing error: ' + e.message, 'error');
       }
     };
 
@@ -61,7 +85,8 @@ export default function WebSocketStreamingComponent() {
   const disconnectWebSocket = () => {
     if (wsRef.current) {
       addLog('Closing connection...', 'info');
-      wsRef.current.close();
+      // Close with proper status code
+      wsRef.current.close(1000, 'Client closing connection');
     }
   };
 

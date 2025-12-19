@@ -14,7 +14,7 @@ COPY . .
  
 # Build the application
 # CGO_ENABLED=0 is for static binary, useful if using scratch or alpine
-RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=vendor -o main .
  
 # Run Stage
 FROM alpine:latest
